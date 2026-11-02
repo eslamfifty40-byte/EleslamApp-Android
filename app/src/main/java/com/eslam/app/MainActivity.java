@@ -463,6 +463,7 @@ public class MainActivity extends Activity {
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setRenderPriority(WebSettings.RenderPriority.HIGH);
         webView.addJavascriptInterface(new AzkarBridge(this), "AndroidBridge");
+        webView.addJavascriptInterface(new AndroidAppBridge(), "AndroidApp");
 
         // Hardware Acceleration layer for silky-smooth rendering
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
