@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "153171358494",
+    "project_id": "eslam-app-d6c53",
+    "storage_bucket": "eslam-app-d6c53.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:153171358494:android:157ce5ed3bbfcfff930f0f",
+        "android_client_info": {
+          "package_name": "com.eleslam.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6unL2KvslWjx2-74Its5pgWucij0MjzE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:153171358494:android:18d0b6cf669a2b81930f0f",
+        "android_client_info": {
+          "package_name": "com.eslam.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6unL2KvslWjx2-74Its5pgWucij0MjzE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

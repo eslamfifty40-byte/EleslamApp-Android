@@ -1,0 +1,45 @@
+plugins {
+    id "com.android.application"
+    id "com.google.gms.google-services"
+}
+
+android {
+    namespace "com.eslam.app"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.eslam.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 3
+        versionName "2.2"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "com.google.android.material:material:1.11.0"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+    // Firebase BoM & Cloud Messaging
+    implementation platform("com.google.firebase:firebase-bom:33.5.1")
+    implementation "com.google.firebase:firebase-messaging"
+    implementation "com.google.firebase:firebase-analytics"
+}
