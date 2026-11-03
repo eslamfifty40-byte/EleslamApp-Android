@@ -46,10 +46,14 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
         splash = new ImageView(this);
-        splash.setImageResource(R.drawable.splash_screen);
+        splash.setImageResource(R.drawable.welcome_dedication);
         splash.setScaleType(ImageView.ScaleType.CENTER_CROP);
         root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         root.addView(splash, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        spinner = new android.widget.ProgressBar(this);
+        FrameLayout.LayoutParams spLp = new FrameLayout.LayoutParams(120, 120, android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.BOTTOM);
+        spLp.bottomMargin = 220;
+        root.addView(spinner, spLp);
         setContentView(root);
 
         WebSettings s = webView.getSettings();
@@ -158,8 +162,14 @@ public class MainActivity extends Activity {
         }
     }
 
+    private android.widget.ProgressBar spinner;
+    private final long splashStart = System.currentTimeMillis();
+
     private void hideSplash() {
         if (splash == null || splash.getVisibility() != View.VISIBLE) return;
+        long wait = 3000 - (System.currentTimeMillis() - splashStart);
+        if (wait > 0) { handler.postDelayed(this::hideSplash, wait); return; }
+        if (spinner != null) spinner.setVisibility(View.GONE);
         splash.animate().alpha(0f).setDuration(300).withEndAction(() -> splash.setVisibility(View.GONE)).start();
     }
 
