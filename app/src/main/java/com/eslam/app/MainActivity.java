@@ -51,7 +51,6 @@ import android.widget.Toast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,7 +75,7 @@ public class MainActivity extends Activity {
     private boolean isPageFullyLoaded = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private static final String INJECTED_FIXES_JS = 
+    private static final String INJECTED_FIXES_JS =
         "(function() {" +
         "  var fixGapStyle = document.getElementById('eleslam-gap-fix');" +
         "  if (!fixGapStyle) {" +
@@ -390,7 +389,8 @@ public class MainActivity extends Activity {
                 if (isNetworkAvailable()) {
                     offlineLayout.setVisibility(View.GONE);
                     webView.setVisibility(View.VISIBLE);
-                    webView.clearCache(false); webView.reload();
+                    webView.clearCache(false);
+                    webView.reload();
                 } else {
                     Toast.makeText(MainActivity.this, "ما زال الاتصال غير متوفر", Toast.LENGTH_SHORT).show();
                 }
