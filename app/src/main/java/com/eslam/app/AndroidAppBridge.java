@@ -1,31 +1,40 @@
 package com.eslam.app;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.webkit.JavascriptInterface;
 
 public class AndroidAppBridge {
-    private final android.content.Context ctx;
+    private final Context ctx;
 
-    public AndroidAppBridge(android.content.Context c) {
+    public AndroidAppBridge(Context c) {
         this.ctx = c;
     }
 
-    @android.webkit.JavascriptInterface
+    @JavascriptInterface
     public boolean hasLocationPermission() {
-        return ctx.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            || ctx.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        return ctx.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            || ctx.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     @JavascriptInterface
     public void startCompass(double lat, double lon, double altitude) {
-        // placeholder: the page already handles the heading via device orientation
+        // placeholder: the page handles the heading via device orientation
     }
 
-    @android.webkit.JavascriptInterface
-    public void getLocation() {
-        android.location.LocationManager lm = (android.location.LocationManager) ctx.getSystemService(android.content.Context.LOCATION_SERVICE);
-        android.location.Location loc = null;
-        try { loc = lm.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER); } catch (SecurityException e) {}
-        if (loc == null) { try { loc = lm.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER); } catch (SecurityException e) {} }
-        if (loc == null) return;
+    @JavascriptInterface
+    public String getLastLocation() {
+        if (!hasLocationPermission()) return null;
+        LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+        Location loc = null;
+        try { loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER); } catch (SecurityException e) {}
+        if (loc == null) {
+            try { loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); } catch (SecurityException e) {}
+        }
+        if (loc == null) return null;
+        return loc.getLatitude() + "," + loc.getLongitude();
     }
 }
