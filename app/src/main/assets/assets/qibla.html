@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:sans-serif;background:#064e3b;color:#fef08a;text-align:center;padding:20px}
+button{background:#d97706;color:#fff;border:0;border-radius:12px;padding:14px 24px;font-size:18px;margin:10px}
+#arrow{font-size:90px;transition:transform .2s}
+p{color:#fff}
+</style>
+</head>
+<body>
+<h2>اتجاه القبلة</h2>
+<button onclick="startQibla()">تحديد القبلة من موقعي</button>
+<div id="arrow">⬆️</div>
+<p id="info"></p>
+<script>
+var KAABA_LAT=21.4225, KAABA_LNG=39.8262, qibla=null;
+function calc(lat,lng){
+  var r=Math.PI/180;
+  var y=Math.sin((KAABA_LNG-lng)*r);
+  var x=Math.cos(lat*r)*Math.tan(KAABA_LAT*r)-Math.sin(lat*r)*Math.cos((KAABA_LNG-lng)*r);
+  return (Math.atan2(y,x)/r+360)%360;
+}
+function onLoc(lat,lng){
+  qibla=calc(lat,lng);
+  document.getElementById('info').textContent='اتجاه القبلة: '+qibla.toFixed(1)+'°';
+  document.getElementById('arrow').style.transform='rotate('+qibla+'deg)';
+}
+function startQibla(){
+  if(window.AndroidApp && AndroidApp.getLastLocation){
+    var loc=AndroidApp.getLastLocation();
+    if(loc){var p=loc.split(',');onLoc(parseFloat(p[0]),parseFloat(p[1]));return;}
+  }
+  document.getElementById('info').textContent='جاري تحديد الموقع...';
+}
+</script>
+</body>
+</html>
