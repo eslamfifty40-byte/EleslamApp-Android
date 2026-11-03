@@ -44,7 +44,7 @@
   window.islamSchedulePrayer = function (id, hhmm, name) {
     const p = String(hhmm).split(':').map(Number);
     if (p.length < 2 || isNaN(p[0]) || isNaN(p[1])) return;
-    N.schedulePrayer(id, p[0], p[1], 'حان وقت ' + name, 'حي على الصلاة');
+    N.schedulePrayer(id, p[0], p[1], 'موعد الصلاة', 'حان الآن موعد الصلاة');
   };
 
   if (window.speechSynthesis) {
@@ -181,11 +181,11 @@
         if (t.indexOf('تثبيت التطبيق') !== -1 || t.indexOf('تحميل التطبيق') !== -1) el.style.display = 'none';
       });
       const dash = document.getElementById('islamDashboard');
-      const onHome = !!dash && dash.getClientRects().length > 0 && window.scrollY < 20;
+      const onHome = !!dash && dash.getClientRects().length > 0;
       btn.style.display = onHome ? 'block' : 'none';
       if (!onHome) panel.style.display = 'none';
     }, 300);
-    window.addEventListener('scroll', function () { if (window.scrollY >= 20) { btn.style.display = 'none'; panel.style.display = 'none'; } }, { passive: true });
+
   }
 
   function introFix() {
