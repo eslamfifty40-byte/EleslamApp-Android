@@ -318,6 +318,7 @@ public class MainActivity extends Activity {
         setupWebView();
         createNotificationChannel();
         checkNotificationPermission();
+        GeolocationPermissions.getInstance().clearAll();
         initFirebaseToken();
 
         // Clear stale WebView cache to ensure the clean updated website shell is served
