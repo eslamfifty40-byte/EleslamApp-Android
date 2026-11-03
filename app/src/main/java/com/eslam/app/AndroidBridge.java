@@ -43,6 +43,8 @@ public class AndroidBridge implements SensorEventListener {
     private boolean compassOn = false;
     private float lastHeading = -1f;
 
+    private float declination = 0f;
+
     public AndroidBridge(Activity activity, WebView webView) {
         this.activity = activity;
         this.webView = webView;
@@ -74,7 +76,7 @@ public class AndroidBridge implements SensorEventListener {
         SensorManager.getRotationMatrixFromVector(rotMatrix, event.values);
         SensorManager.getOrientation(rotMatrix, orientation);
         float heading = (float) Math.toDegrees(orientation[0]);
-        heading = (heading + 360f) % 360f;
+        heading = (heading + declination + 360f) % 360f;
         if (lastHeading >= 0 && Math.abs(heading - lastHeading) < 1f) return; // تقليل الإرسال
         lastHeading = heading;
         final String js = "window.onNativeCompass && window.onNativeCompass(" + heading + ")";
@@ -134,6 +136,7 @@ public class AndroidBridge implements SensorEventListener {
                 ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
         LocationListener once = new LocationListener() {
             @Override public void onLocationChanged(Location loc) {
+                declination = new android.hardware.GeomagneticField((float) loc.getLatitude(), (float) loc.getLongitude(), 0f, System.currentTimeMillis()).getDeclination();
                 sendJs("window.onNativeLocation && window.onNativeLocation(" + loc.getLatitude() + "," + loc.getLongitude() + ")");
                 lm.removeUpdates(this);
             }

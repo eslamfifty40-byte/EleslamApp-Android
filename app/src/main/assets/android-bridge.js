@@ -9,8 +9,6 @@
   Object.defineProperty(navigator, 'geolocation', { configurable: true, value: {
     getCurrentPosition(ok, err) {
       if (!N.isLocationEnabled()) { N.openLocationSettings(); if (err) err({ code: 2, message: 'off' }); return; }
-      const last = N.getLastLocation();
-      if (last) { const p = last.split(','); ok(fakePos(Number(p[0]), Number(p[1]))); return; }
       window.__geoCb = { ok, err };
       N.requestLocation();
     },
@@ -44,6 +42,7 @@
   let candidate = null;
   let undoing = false;
   const SHOWN_ATTRS = ['class', 'style', 'hidden', 'aria-hidden'];
+  function isElem(n) { return n && n.nodeType === 1; }
 
   function isVisibleNow(el) {
     if (!el || !el.getAttribute) return false;
@@ -67,14 +66,23 @@
   const mo = new MutationObserver(function (muts) {
     if (undoing || !candidate) return;
     for (const m of muts) {
-      if (m.type !== 'attributes') continue;
-      candidate.changes.push({ el: m.target, attr: m.attributeName, old: m.oldValue });
-      if (!candidate.opens && wasHidden(m.attributeName, m.oldValue) && isVisibleNow(m.target)) candidate.opens = true;
+      if (m.type === 'attributes') {
+        candidate.changes.push({ kind: 'attr', el: m.target, attr: m.attributeName, old: m.oldValue });
+        if (!candidate.opens && wasHidden(m.attributeName, m.oldValue) && isVisibleNow(m.target)) candidate.opens = true;
+      } else if (m.type === 'childList') {
+        m.addedNodes.forEach(function (n) {
+          candidate.changes.push({ kind: 'add', node: n });
+          if (isElem(n) && n.getClientRects && n.getClientRects().length > 0) candidate.opens = true;
+        });
+        m.removedNodes.forEach(function (n) {
+          candidate.changes.push({ kind: 'rem', node: n, parent: m.target, next: m.nextSibling });
+        });
+      }
     }
     if (candidate.opens) { journal.push(candidate); if (journal.length > 80) journal.shift(); }
     candidate = null;
   });
-  mo.observe(document.documentElement, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: SHOWN_ATTRS });
+  mo.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeOldValue: true, attributeFilter: SHOWN_ATTRS });
 
   function undoLast() {
     const g = journal.pop();
@@ -83,8 +91,15 @@
     try {
       for (let i = g.changes.length - 1; i >= 0; i--) {
         const c = g.changes[i];
-        if (c.old === null || c.old === undefined) c.el.removeAttribute(c.attr);
-        else c.el.setAttribute(c.attr, c.old);
+        if (c.kind === 'attr') {
+          if (c.old === null || c.old === undefined) c.el.removeAttribute(c.attr);
+          else c.el.setAttribute(c.attr, c.old);
+        } else if (c.kind === 'add') {
+          if (c.node.parentNode) c.node.parentNode.removeChild(c.node);
+        } else if (c.kind === 'rem') {
+          if (c.next && c.next.parentNode === c.parent) c.parent.insertBefore(c.node, c.next);
+          else c.parent.appendChild(c.node);
+        }
       }
       window.scrollTo(0, g.scrollY || 0);
     } finally { undoing = false; }
@@ -138,9 +153,12 @@
       document.querySelectorAll('audio,video').forEach(function (m) { m.volume = Number(e.target.value); });
     };
     setInterval(function () {
+      document.querySelectorAll('button,a').forEach(function (el) {
+        const t = (el.textContent || '').trim();
+        if (t.indexOf('تثبيت التطبيق') !== -1 || t.indexOf('تحميل التطبيق') !== -1) el.style.display = 'none';
+      });
       const dash = document.getElementById('islamDashboard');
-      const main = document.getElementById('mainAppContent');
-      const onHome = !!dash && dash.style.display !== 'none' && (!main || main.classList.contains('hidden'));
+      const onHome = !!dash && dash.getClientRects().length > 0;
       btn.style.display = onHome ? 'block' : 'none';
       if (!onHome) panel.style.display = 'none';
     }, 400);

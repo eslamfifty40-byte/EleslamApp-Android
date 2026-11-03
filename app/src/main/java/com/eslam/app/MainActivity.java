@@ -59,7 +59,8 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
-        s.setGeolocationEnabled(false);   // الموقع من الكود الأصلي مش من المتصفح
+        s.setGeolocationEnabled(false);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);   // الموقع من الكود الأصلي مش من المتصفح
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
@@ -129,6 +130,12 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             needed.add(android.Manifest.permission.POST_NOTIFICATIONS);
+        }
+        String[] media = Build.VERSION.SDK_INT >= 33
+                ? new String[]{android.Manifest.permission.READ_MEDIA_AUDIO, android.Manifest.permission.READ_MEDIA_IMAGES}
+                : new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE};
+        for (String mp : media) {
+            if (ContextCompat.checkSelfPermission(this, mp) != PackageManager.PERMISSION_GRANTED) needed.add(mp);
         }
         if (!needed.isEmpty()) {
             ActivityCompat.requestPermissions(this, needed.toArray(new String[0]), REQ_LOCATION);
