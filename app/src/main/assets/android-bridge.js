@@ -9,14 +9,28 @@
   Object.defineProperty(navigator, 'geolocation', { configurable: true, value: {
     getCurrentPosition(ok, err) {
       if (!N.isLocationEnabled()) { N.openLocationSettings(); if (err) err({ code: 2, message: 'off' }); return; }
-      window.__geoCb = { ok, err };
+      const cb = { ok: ok, err: err, done: false };
+      window.__geoCb = cb;
+      const last = N.getLastLocation();
       N.requestLocation();
+      setTimeout(function () {
+        if (cb.done) return;
+        cb.done = true; window.__geoCb = null;
+        if (last) { const p = last.split(','); ok(fakePos(Number(p[0]), Number(p[1]))); }
+        else if (err) err({ code: 3, message: 'timeout' });
+      }, 12000);
     },
     watchPosition(ok, err) { this.getCurrentPosition(ok, err); return 0; },
     clearWatch() {}
   }});
-  window.onNativeLocation = function (la, lo) { const cb = window.__geoCb; window.__geoCb = null; if (cb) cb.ok(fakePos(la, lo)); };
-  window.onNativeLocationError = function (c) { const cb = window.__geoCb; window.__geoCb = null; if (cb) cb.err({ code: c || 1, message: 'err' }); };
+  window.onNativeLocation = function (la, lo) {
+    const cb = window.__geoCb; if (!cb || cb.done) return;
+    cb.done = true; window.__geoCb = null; cb.ok(fakePos(la, lo));
+  };
+  window.onNativeLocationError = function (c) {
+    const cb = window.__geoCb; if (!cb || cb.done) return;
+    cb.done = true; window.__geoCb = null; if (cb.err) cb.err({ code: c || 1, message: 'err' });
+  };
 
   window.islamStartCompass = function () { if (N.hasCompass()) N.startCompass(); };
   window.onNativeCompass = function (h) {
@@ -43,7 +57,6 @@
   let undoing = false;
   const SHOWN_ATTRS = ['class', 'style', 'hidden', 'aria-hidden'];
   function isElem(n) { return n && n.nodeType === 1; }
-
   function isVisibleNow(el) {
     if (!el || !el.getAttribute) return false;
     if (el.hidden || el.getAttribute('aria-hidden') === 'true') return false;
@@ -120,11 +133,18 @@
 
   const css = [
     '[onclick*="installIslamApp"],#installAppBtn,#installAppStatus{display:none!important}',
-    '#islamSettingsBtn{position:fixed;top:10px;right:10px;z-index:99999;width:42px;height:42px;border-radius:50%;background:#064e3b;color:#fde68a;border:2px solid #d4af37;font-size:20px}',
-    '#islamSettingsPanel{position:fixed;top:60px;right:10px;z-index:99999;background:#031912;color:#fde68a;border:1px solid #d4af37;border-radius:12px;padding:12px;width:240px}',
-    '#islamSettingsPanel button{background:#064e3b;color:#fde68a;border:1px solid #d4af37;border-radius:8px;padding:6px 10px;margin:4px}'
+    '#islamSettingsBtn{position:fixed!important;top:10px!important;right:10px!important;z-index:99999;width:44px!important;height:44px!important;min-width:44px;border-radius:50%;background:#064e3b;color:#fde68a;border:2px solid #d4af37;font-size:20px!important;line-height:1;padding:0;zoom:1}',
+    '#islamSettingsPanel{position:fixed;top:64px;right:10px;z-index:99999;background:#031912;color:#fde68a;border:1px solid #d4af37;border-radius:14px;padding:14px;width:250px;box-shadow:0 8px 24px rgba(0,0,0,.5)}',
+    '#islamSettingsPanel .ttl{font-size:18px;text-align:center;margin-bottom:10px}',
+    '#islamSettingsPanel .row{display:flex;gap:8px;justify-content:center;margin:8px 0;flex-wrap:wrap}',
+    '#islamSettingsPanel button{flex:1;background:#064e3b;color:#fde68a;border:1px solid #d4af37;border-radius:10px;padding:8px 6px;font-size:14px;min-width:90px}',
+    '#islamSettingsPanel input[type=range]{width:100%;margin-top:6px}',
+    '#islamSpin{position:fixed;left:50%;bottom:14vh;transform:translateX(-50%);width:54px;height:54px;border:5px solid rgba(212,175,55,.25);border-top-color:#f5d76e;border-radius:50%;animation:islamspin 1s linear infinite;z-index:99998}',
+    '@keyframes islamspin{to{transform:translateX(-50%) rotate(360deg)}}'
   ].join('');
   const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
+
+  function mediaList() { return Array.prototype.slice.call(document.querySelectorAll('audio,video')); }
 
   function addSettings() {
     if (document.getElementById('islamSettingsBtn')) return;
@@ -132,13 +152,15 @@
     btn.id = 'islamSettingsBtn'; btn.textContent = '⚙';
     const panel = document.createElement('div');
     panel.id = 'islamSettingsPanel'; panel.style.display = 'none';
-    panel.innerHTML = '<div>الإعدادات</div>' +
-      '<div><button data-a="fu">A+</button><button data-a="fd">A-</button></div>' +
-      '<div><button data-a="night">الوضع الليلي</button></div>' +
-      '<div>الصوت <input type="range" min="0" max="1" step="0.05" value="1" id="islamVol" style="width:100%"></div>' +
-      '<div><button data-a="pause">إيقاف الصوت</button></div>';
+    panel.innerHTML =
+      '<div class="ttl">الإعدادات</div>' +
+      '<div class="row"><button data-a="fu">تكبير الخط A+</button><button data-a="fd">تصغير الخط A-</button></div>' +
+      '<div class="row"><button data-a="night">الوضع الليلي</button></div>' +
+      '<div>الصوت</div><input type="range" min="0" max="1" step="0.05" value="1" id="islamVol">' +
+      '<div class="row"><button data-a="pause">إيقاف الصوت</button><button data-a="play">تشغيل الصوت</button></div>';
     document.body.appendChild(btn); document.body.appendChild(panel);
     let pct = 100;
+    let pausedByUs = [];
     btn.onclick = function () { panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; };
     panel.onclick = function (e) {
       const a = e.target && e.target.getAttribute && e.target.getAttribute('data-a');
@@ -147,10 +169,11 @@
       if (a === 'fd') pct = Math.max(80, pct - 10);
       if (a === 'fu' || a === 'fd') document.documentElement.style.fontSize = pct + '%';
       if (a === 'night') document.body.style.filter = document.body.style.filter ? '' : 'brightness(0.75)';
-      if (a === 'pause') document.querySelectorAll('audio,video').forEach(function (m) { m.pause(); });
+      if (a === 'pause') { pausedByUs = []; mediaList().forEach(function (m) { if (!m.paused) { pausedByUs.push(m); m.pause(); } }); }
+      if (a === 'play') { pausedByUs.forEach(function (m) { m.play().catch(function () {}); }); pausedByUs = []; }
     };
     document.getElementById('islamVol').oninput = function (e) {
-      document.querySelectorAll('audio,video').forEach(function (m) { m.volume = Number(e.target.value); });
+      mediaList().forEach(function (m) { m.volume = Number(e.target.value); });
     };
     setInterval(function () {
       document.querySelectorAll('button,a').forEach(function (el) {
@@ -158,10 +181,24 @@
         if (t.indexOf('تثبيت التطبيق') !== -1 || t.indexOf('تحميل التطبيق') !== -1) el.style.display = 'none';
       });
       const dash = document.getElementById('islamDashboard');
-      const onHome = !!dash && dash.getClientRects().length > 0;
+      const onHome = !!dash && dash.getClientRects().length > 0 && window.scrollY < 20;
       btn.style.display = onHome ? 'block' : 'none';
       if (!onHome) panel.style.display = 'none';
-    }, 400);
+    }, 300);
+    window.addEventListener('scroll', function () { if (window.scrollY >= 20) { btn.style.display = 'none'; panel.style.display = 'none'; } }, { passive: true });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addSettings); else addSettings();
+
+  function introFix() {
+    const sp = document.getElementById('splashScreen');
+    if (sp) sp.style.display = 'none';
+    const ws = document.getElementById('welcomeScreen');
+    if (ws) {
+      const spin = document.createElement('div'); spin.id = 'islamSpin';
+      document.body.appendChild(spin);
+      setTimeout(function () { if (spin.parentNode) spin.parentNode.removeChild(spin); }, 3000);
+    }
+  }
+
+  function boot() { addSettings(); introFix(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

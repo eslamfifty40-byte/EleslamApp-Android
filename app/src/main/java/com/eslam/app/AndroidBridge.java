@@ -207,7 +207,7 @@ public class AndroidBridge implements SensorEventListener {
     // ---------- زر التثبيت: إضافة أيقونة التطبيق للشاشة الرئيسية ----------
 
     @JavascriptInterface
-    public boolean addHomeShortcut() {
+    public boolean addHomeShortcut() { if (true) return false;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false;
         ShortcutManager sm = activity.getSystemService(ShortcutManager.class);
         if (sm == null || !sm.isRequestPinShortcutSupported()) return false;
