@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- الثيم ده يخلي أول ما التطبيق يفتح تظهر صورة شاشة الإهداء بدل أيقونة أندرويد -->
+    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_bg</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:statusBarColor">#064e3b</item>
+        <item name="android:navigationBarColor">#031912</item>
+    </style>
+</resources>
