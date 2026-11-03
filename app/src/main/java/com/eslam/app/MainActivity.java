@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
         splash = new ImageView(this);
-        splash.setImageResource(R.drawable.welcome_dedication);
+        splash.setImageResource(R.drawable.splash_screen);
         splash.setScaleType(ImageView.ScaleType.CENTER_CROP);
         root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         root.addView(splash, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));

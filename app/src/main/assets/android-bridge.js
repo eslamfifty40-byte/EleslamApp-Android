@@ -110,3 +110,9 @@
     if (st) st.textContent = ok ? 'تمت إضافة أيقونة التطبيق للشاشة الرئيسية.' : 'التطبيق مثبت بالفعل ويعمل من داخل الأندرويد.';
   };
 })();
+(function(){
+  if (!window.islamIsNative) return;
+  const st = document.createElement('style');
+  st.textContent = '#installAppBtn,#installAppStatus{display:none!important}';
+  document.head.appendChild(st);
+})();
