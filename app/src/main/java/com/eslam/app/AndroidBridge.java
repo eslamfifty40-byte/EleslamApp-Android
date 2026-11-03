@@ -134,13 +134,9 @@ public class AndroidBridge implements SensorEventListener {
         LocationManager lm = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
         String provider = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
-        final boolean[] done = {false};
-        final boolean[] done = {false};
         LocationListener once = new LocationListener() {
             @Override public void onLocationChanged(Location loc) {
                 declination = new android.hardware.GeomagneticField((float) loc.getLatitude(), (float) loc.getLongitude(), 0f, System.currentTimeMillis()).getDeclination();
-                done[0] = true;
-                done[0] = true;
                 sendJs("window.onNativeLocation && window.onNativeLocation(" + loc.getLatitude() + "," + loc.getLongitude() + ")");
                 lm.removeUpdates(this);
             }
@@ -148,30 +144,6 @@ public class AndroidBridge implements SensorEventListener {
             @Override public void onProviderEnabled(String p) { }
         };
         try {
-            new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
-                if (done[0]) return;
-                done[0] = true;
-                try { lm.removeUpdates(once); } catch (Exception ignored) { }
-                Location best = null;
-                for (String pv : lm.getProviders(true)) {
-                    Location l = lm.getLastKnownLocation(pv);
-                    if (l != null && (best == null || l.getTime() > best.getTime())) best = l;
-                }
-                if (best != null) sendJs("window.onNativeLocation && window.onNativeLocation(" + best.getLatitude() + "," + best.getLongitude() + ")");
-                else sendJs("window.onNativeLocationError && window.onNativeLocationError(3)");
-            }, 10000);
-            new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
-                if (done[0]) return;
-                done[0] = true;
-                try { lm.removeUpdates(once); } catch (Exception ignored) { }
-                Location best = null;
-                for (String pv : lm.getProviders(true)) {
-                    Location l = lm.getLastKnownLocation(pv);
-                    if (l != null && (best == null || l.getTime() > best.getTime())) best = l;
-                }
-                if (best != null) sendJs("window.onNativeLocation && window.onNativeLocation(" + best.getLatitude() + "," + best.getLongitude() + ")");
-                else sendJs("window.onNativeLocationError && window.onNativeLocationError(3)");
-            }, 10000);
             lm.requestSingleUpdate(provider, once, Looper.getMainLooper());
         } catch (Exception e) {
             sendJs("window.onNativeLocationError && window.onNativeLocationError(2)");
