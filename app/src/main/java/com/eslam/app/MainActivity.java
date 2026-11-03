@@ -94,12 +94,28 @@ public class MainActivity extends Activity {
 
         webView.loadUrl(START_URL);
 
-        // إذن الإشعارات من الأندرويد نفسه (أندرويد 13+)
-        if (Build.VERSION.SDK_INT >= 33
-                && ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+        // أول مرة بس بعد التثبيت: نطلب إذن الموقع والإشعارات من أندرويد نفسه
+        android.content.SharedPreferences prefs = getSharedPreferences("eslam_setup", MODE_PRIVATE);
+        if (!prefs.getBoolean("asked_perms", false)) {
+            prefs.edit().putBoolean("asked_perms", true).apply();
+            askFirstLaunchPermissions();
+        }
+    }
+
+    // يطلب الإذن من نافذة أندرويد الرسمية (مش من Google ولا Firebase ولا المتصفح)
+    private void askFirstLaunchPermissions() {
+        java.util.ArrayList<String> needed = new java.util.ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFY);
+            needed.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+            needed.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
+        }
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            needed.add(android.Manifest.permission.POST_NOTIFICATIONS);
+        }
+        if (!needed.isEmpty()) {
+            ActivityCompat.requestPermissions(this, needed.toArray(new String[0]), REQ_LOCATION);
         }
     }
 
@@ -123,7 +139,9 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
-        if (requestCode == REQ_LOCATION && bridge != null) bridge.onPermissionResult(results);
+        if (requestCode == REQ_LOCATION && bridge != null && results.length > 0) {
+            bridge.onPermissionResult(results);
+        }
     }
 
     @Override
