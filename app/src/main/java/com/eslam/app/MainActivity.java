@@ -76,14 +76,8 @@ public class MainActivity extends Activity {
     private boolean isPageFullyLoaded = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    // Comprehensive JS Injection to resolve:
-    // 1. Bottom empty gap (padding-bottom fix)
-    // 2. Gradual step-by-step back navigation for all buttons and phone back key
-    // 3. Sheikh portraits auto-display in Quran section without requiring clicks
-    // 4. Surah Al-Fatihah 51s duration fix for Sheikh Muhammad Siddiq Al-Minshawi
     private static final String INJECTED_FIXES_JS = 
         "(function() {" +
-        "  /* Remove excessive bottom padding and fix gaps when scrolling */" +
         "  var fixGapStyle = document.getElementById('eleslam-gap-fix');" +
         "  if (!fixGapStyle) {" +
         "    fixGapStyle = document.createElement('style');" +
@@ -96,8 +90,6 @@ public class MainActivity extends Activity {
         "      '#mainPlayerReciterImage { border-radius: 50% !important; border: 2px solid #fef08a !important; object-fit: cover !important; background: #064e3b !important; }';" +
         "    document.head.appendChild(fixGapStyle);" +
         "  }" +
-        "" +
-        "  /* Neutralize runaway MutationObservers that freeze the UI */" +
         "  if (!window.__eleslamObserverPatched) {" +
         "    window.__eleslamObserverPatched = true;" +
         "    var origObserve = MutationObserver.prototype.observe;" +
@@ -108,8 +100,6 @@ public class MainActivity extends Activity {
         "      return origObserve.call(this, target, options);" +
         "    };" +
         "  }" +
-        "" +
-        "  /* 1. Instant Auto-Load Sheikh Reciter Images */" +
         "  function autoLoadReciterPhotos() {" +
         "    var cards = document.querySelectorAll('#quranReciterCards .qp-reciter-card');" +
         "    if (!cards || cards.length === 0) return;" +
@@ -149,8 +139,6 @@ public class MainActivity extends Activity {
         "      }" +
         "    }" +
         "  }" +
-        "" +
-        "  /* 2. Fix Surah Al-Fatihah 51s duration for Sheikh Muhammad Siddiq Al-Minshawi */" +
         "  function fixMinshawiDuration() {" +
         "    var audio = document.getElementById('audioElement');" +
         "    if (!audio) return;" +
@@ -159,7 +147,6 @@ public class MainActivity extends Activity {
         "    var sVal = Number(audio.dataset.playingSurah || (document.getElementById('surahSelect') ? document.getElementById('surahSelect').value : 0));" +
         "    var isMinshawi = rName.indexOf('منشاوي') !== -1 || (audio.src && audio.src.indexOf('minsh') !== -1);" +
         "    if (sVal === 1 && isMinshawi) {" +
-        "      /* Override duration to 51 seconds */" +
         "      if (!audio.dataset.minshawiHooked) {" +
         "        audio.dataset.minshawiHooked = '1';" +
         "        try {" +
@@ -185,11 +172,8 @@ public class MainActivity extends Activity {
         "      }" +
         "    }" +
         "  }" +
-        "" +
-        "  /* 3. Gradual Step-by-Step Back Navigation Stack */" +
         "  window.__navHistory = window.__navHistory || ['dashboard'];" +
         "  window.__isPopping = false;" +
-        "" +
         "  function trackView(viewId) {" +
         "    if (window.__isPopping || !viewId || viewId === 'dashboard') return;" +
         "    var stack = window.__navHistory;" +
@@ -197,8 +181,6 @@ public class MainActivity extends Activity {
         "      stack.push(viewId);" +
         "    }" +
         "  }" +
-        "" +
-        "  /* Intercept tab opening functions to record navigation */" +
         "  var origSwitchTab = window.switchTab;" +
         "  window.switchTab = function(tabId) {" +
         "    trackView('tab-' + tabId);" +
@@ -209,7 +191,6 @@ public class MainActivity extends Activity {
         "    }" +
         "    return res;" +
         "  };" +
-        "" +
         "  var origDashOpen = window.dashOpen;" +
         "  window.dashOpen = function(id) {" +
         "    trackView(id.indexOf('tab-') === 0 ? id : 'tab-' + id);" +
@@ -220,12 +201,9 @@ public class MainActivity extends Activity {
         "    }" +
         "    return res;" +
         "  };" +
-        "" +
-        "  /* Step Back Function: Gradually unwinds one view at a time */" +
         "  window.__stepBackGradually = function() {" +
         "    window.__isPopping = true;" +
         "    try {" +
-        "      /* A. Check and dismiss sub-pages / overlays first */" +
         "      var fullMushaf = document.getElementById('fullMushafReader');" +
         "      if (fullMushaf && !fullMushaf.classList.contains('hidden') && fullMushaf.style.display !== 'none') {" +
         "        if (typeof window.closeFullMushaf === 'function') { window.closeFullMushaf(); return true; }" +
@@ -248,11 +226,9 @@ public class MainActivity extends Activity {
         "        familyDetail.classList.add('hidden');" +
         "        return true;" +
         "      }" +
-        "" +
-        "      /* B. Unwind tab stack step-by-step */" +
         "      var stack = window.__navHistory;" +
         "      if (stack.length > 1) {" +
-        "        stack.pop(); /* Remove current */" +
+        "        stack.pop();" +
         "        var prev = stack[stack.length - 1];" +
         "        if (prev && prev !== 'dashboard') {" +
         "          var clean = prev.replace('tab-', '');" +
@@ -269,8 +245,6 @@ public class MainActivity extends Activity {
         "          }" +
         "        }" +
         "      }" +
-        "" +
-        "      /* C. When stack is exhausted, go to main dashboard */" +
         "      if (!document.body.classList.contains('dashboard-open')) {" +
         "        stack.length = 0;" +
         "        stack.push('dashboard');" +
@@ -283,12 +257,8 @@ public class MainActivity extends Activity {
         "      setTimeout(function() { window.__isPopping = false; }, 150);" +
         "    }" +
         "  };" +
-        "" +
-        "  /* Override the website's original goBackInApp so on-screen back buttons use gradual navigation */" +
         "  window.goBackInApp = window.__stepBackGradually;" +
         "  window.goBack = window.__stepBackGradually;" +
-        "" +
-        "  /* Global click listener for any back button on screen */" +
         "  document.addEventListener('click', function(e) {" +
         "    var backBtn = e.target.closest('button[onclick*=\"goBackInApp\"], .v175-back, [aria-label*=\"رجوع\"]');" +
         "    if (backBtn) {" +
@@ -297,13 +267,10 @@ public class MainActivity extends Activity {
         "      window.__stepBackGradually();" +
         "    }" +
         "  }, true);" +
-        "" +
-        "  /* Periodic checker for photos and duration */" +
         "  setInterval(function() {" +
         "    autoLoadReciterPhotos();" +
         "    fixMinshawiDuration();" +
         "  }, 400);" +
-        "" +
         "  document.addEventListener('DOMContentLoaded', function() {" +
         "    autoLoadReciterPhotos();" +
         "  });" +
@@ -320,8 +287,8 @@ public class MainActivity extends Activity {
         checkNotificationPermission();
         GeolocationPermissions.getInstance().clearAll();
         initFirebaseToken();
+        scheduleTestAlarm();
 
-        // Clear stale WebView cache to ensure the clean updated website shell is served
         webView.clearCache(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             WebStorage.getInstance().deleteAllData();
@@ -333,7 +300,6 @@ public class MainActivity extends Activity {
             loadApp();
         }
 
-        // Show the user's splash screen image for at least 2.5 seconds on app launch
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -342,6 +308,19 @@ public class MainActivity extends Activity {
                 }
             }
         }, 2500);
+    }
+
+    private void scheduleTestAlarm() {
+        android.app.AlarmManager am = (android.app.AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, ReminderReceiver.class);
+        intent.putExtra("id", "test");
+        intent.putExtra("title", "تذكير");
+        intent.putExtra("body", "تم تفعيل التنبيهات بنجاح");
+        intent.putExtra("hour", 0);
+        intent.putExtra("minute", 0);
+        android.app.PendingIntent pi = android.app.PendingIntent.getBroadcast(this, 999, intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
+        am.set(android.app.AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10000, pi);
     }
 
     private void setupViews() {
@@ -422,7 +401,6 @@ public class MainActivity extends Activity {
         offlineLayout.setVisibility(View.GONE);
         rootLayout.addView(offlineLayout);
 
-        // Native Full-Screen Splash Image requested by the user
         splashImageView = new ImageView(this);
         splashImageView.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -466,7 +444,6 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new AzkarBridge(this), "AndroidBridge");
         webView.addJavascriptInterface(new AndroidAppBridge(this), "AndroidApp");
 
-        // Hardware Acceleration layer for silky-smooth rendering
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         CookieManager.getInstance().setAcceptCookie(true);
@@ -511,15 +488,13 @@ public class MainActivity extends Activity {
                 if (request != null && request.getUrl() != null) {
                     String path = request.getUrl().getPath();
                     if (path != null && (path.contains("/images/reciters/") || path.contains("reciter-profile.svg"))) {
-                        // Pass through server files that actually exist
-                        if (path.endsWith("dua-sheikh-yasser.jpg") || 
-                            path.endsWith("dua-sheikh-mishary.jpg") || 
-                            path.endsWith("mushaf_placeholder.jpg") || 
+                        if (path.endsWith("dua-sheikh-yasser.jpg") ||
+                            path.endsWith("dua-sheikh-mishary.jpg") ||
+                            path.endsWith("mushaf_placeholder.jpg") ||
                             path.endsWith("safe-photo-054.jpg")) {
                             return null;
                         }
 
-                        // Decode reciter name
                         String rawFileName = path.substring(path.lastIndexOf('/') + 1);
                         String cleanName = rawFileName;
                         try {
@@ -551,7 +526,6 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                // Only allow the official Firebase-hosted app origin to request device location.
                 if (origin == null || !(origin.equals("https://eslam-app-d6c53.web.app") || origin.equals("https://eslam-app-d6c53.firebaseapp.com"))) {
                     callback.invoke(origin, false, false);
                     return;
@@ -668,7 +642,6 @@ public class MainActivity extends Activity {
             Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
 
-            // Emerald background
             Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             Shader bgShader = new LinearGradient(0, 0, size, size,
                     Color.parseColor("#064e3b"), Color.parseColor("#022c22"),
@@ -676,7 +649,6 @@ public class MainActivity extends Activity {
             bgPaint.setShader(bgShader);
             canvas.drawCircle(size / 2f, size / 2f, size / 2f - 4, bgPaint);
 
-            // Gold border
             Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             borderPaint.setStyle(Paint.Style.STROKE);
             borderPaint.setStrokeWidth(6);
@@ -686,7 +658,6 @@ public class MainActivity extends Activity {
             borderPaint.setShader(goldShader);
             canvas.drawCircle(size / 2f, size / 2f, size / 2f - 6, borderPaint);
 
-            // Inner gold ring
             Paint innerRing = new Paint(Paint.ANTI_ALIAS_FLAG);
             innerRing.setStyle(Paint.Style.STROKE);
             innerRing.setStrokeWidth(2);
@@ -694,7 +665,6 @@ public class MainActivity extends Activity {
             innerRing.setAlpha(140);
             canvas.drawCircle(size / 2f, size / 2f, size / 2f - 16, innerRing);
 
-            // Subtitle
             Paint subPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             subPaint.setColor(Color.parseColor("#d97706"));
             subPaint.setTextSize(18);
@@ -702,7 +672,6 @@ public class MainActivity extends Activity {
             subPaint.setFakeBoldText(true);
             canvas.drawText("القارئ الشيخ", size / 2f, size * 0.40f, subPaint);
 
-            // Sheikh Name
             Paint namePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             namePaint.setColor(Color.WHITE);
             namePaint.setTextSize(sheikhName.length() > 18 ? 16 : 19);
@@ -724,7 +693,6 @@ public class MainActivity extends Activity {
                 canvas.drawText(sheikhName, size / 2f, size * 0.62f, namePaint);
             }
 
-            // Accent bar
             Paint barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             barPaint.setStyle(Paint.Style.STROKE);
             barPaint.setStrokeWidth(3);
@@ -792,7 +760,6 @@ public class MainActivity extends Activity {
                 @Override
                 public void onReceiveValue(String value) {
                     if ("true".equalsIgnoreCase(value) || "\"true\"".equalsIgnoreCase(value)) {
-                        // Successfully unwound to previous view in the app
                         return;
                     }
                     if (webView.canGoBack()) {
@@ -855,7 +822,6 @@ public class MainActivity extends Activity {
             injectFixes();
         }
     }
-
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -976,4 +942,4 @@ public class MainActivity extends Activity {
         }
         super.onDestroy();
     }
-}
+            }
