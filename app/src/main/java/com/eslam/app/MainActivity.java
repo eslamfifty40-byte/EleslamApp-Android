@@ -54,11 +54,9 @@ public class MainActivity extends Activity {
         FrameLayout.LayoutParams spLp = new FrameLayout.LayoutParams(120, 120, android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.BOTTOM);
         spLp.bottomMargin = 220;
         root.addView(spinner, spLp);
-        spinner.setVisibility(View.GONE);
-        handler.postDelayed(() -> {
-            splash.setImageResource(R.drawable.welcome_dedication);
-            spinner.setVisibility(View.VISIBLE);
-        }, 2000);
+        spinner.setVisibility(View.VISIBLE);
+        // Keep the original splash image until the WebView is ready.
+        // The dedication screen is controlled by index.html only.
         setContentView(root);
 
         WebSettings s = webView.getSettings();
@@ -172,8 +170,6 @@ public class MainActivity extends Activity {
 
     private void hideSplash() {
         if (splash == null || splash.getVisibility() != View.VISIBLE) return;
-        long wait = 5000 - (System.currentTimeMillis() - splashStart);
-        if (wait > 0) { handler.postDelayed(this::hideSplash, wait); return; }
         if (spinner != null) spinner.setVisibility(View.GONE);
         splash.animate().alpha(0f).setDuration(300).withEndAction(() -> splash.setVisibility(View.GONE)).start();
     }

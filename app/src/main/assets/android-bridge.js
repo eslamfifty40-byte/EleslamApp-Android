@@ -121,7 +121,10 @@
 
   window.islamHandleBack = function () {
     const radio = document.getElementById('quranRadioPanel');
-    if (radio && !radio.hidden) {
+    if (radio && !radio.hidden && getComputedStyle(radio).display !== 'none') {
+      radio.querySelectorAll('audio,video').forEach(function (m) {
+        try { m.pause(); } catch (e) {}
+      });
       radio.hidden = true;
       const bd = document.getElementById('quranRadioBackdrop');
       if (bd) bd.hidden = true;
@@ -133,7 +136,9 @@
 
   const css = [
     '[onclick*="installIslamApp"],#installAppBtn,#installAppStatus{display:none!important}',
-    '#islamSettingsBtn{position:fixed!important;top:10px!important;right:10px!important;z-index:99999;width:44px!important;height:44px!important;min-width:44px;border-radius:50%;background:#064e3b;color:#fde68a;border:2px solid #d4af37;font-size:20px!important;line-height:1;padding:0;zoom:1}',
+    'body.islam-night-mode{filter:brightness(.75)!important}',
+    '#globalSizeControls,#globalZoomReopen{position:fixed!important;left:10px!important;right:auto!important;top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;z-index:2147483008!important}',
+    '#islamSettingsBtn{position:fixed!important;left:auto!important;top:10px!important;right:10px!important;z-index:99999;width:44px!important;height:44px!important;min-width:44px;border-radius:50%;background:#064e3b;color:#fde68a;border:2px solid #d4af37;font-size:20px!important;line-height:1;padding:0;zoom:1}',
     '#islamSettingsPanel{position:fixed;top:64px;right:10px;z-index:99999;background:#031912;color:#fde68a;border:1px solid #d4af37;border-radius:14px;padding:14px;width:250px;box-shadow:0 8px 24px rgba(0,0,0,.5)}',
     '#islamSettingsPanel .ttl{font-size:18px;text-align:center;margin-bottom:10px}',
     '#islamSettingsPanel .row{display:flex;gap:8px;justify-content:center;margin:8px 0;flex-wrap:wrap}',
@@ -160,6 +165,13 @@
       '<div class="row"><button data-a="pause">إيقاف الصوت</button><button data-a="play">تشغيل الصوت</button></div>';
     document.body.appendChild(btn); document.body.appendChild(panel);
     let pct = 100;
+    try {
+      pct = Math.max(80, Math.min(160,
+        Number(localStorage.getItem('islamFontPercent')) || 100));
+      document.documentElement.style.fontSize = pct + '%';
+      if (localStorage.getItem('islamNightMode') === 'true')
+        document.body.classList.add('islam-night-mode');
+    } catch(e) {}
     let pausedByUs = [];
     btn.onclick = function () { panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; };
     panel.onclick = function (e) {
@@ -167,8 +179,17 @@
       if (!a) return;
       if (a === 'fu') pct = Math.min(160, pct + 10);
       if (a === 'fd') pct = Math.max(80, pct - 10);
-      if (a === 'fu' || a === 'fd') document.documentElement.style.fontSize = pct + '%';
-      if (a === 'night') document.body.style.filter = document.body.style.filter ? '' : 'brightness(0.75)';
+      if (a === 'fu' || a === 'fd') {
+        document.documentElement.style.fontSize = pct + '%';
+        try { localStorage.setItem('islamFontPercent', String(pct)); } catch(e) {}
+      }
+      if (a === 'night') {
+        document.body.classList.toggle('islam-night-mode');
+        try {
+          localStorage.setItem('islamNightMode',
+            String(document.body.classList.contains('islam-night-mode')));
+        } catch(e) {}
+      }
       if (a === 'pause') { pausedByUs = []; mediaList().forEach(function (m) { if (!m.paused) { pausedByUs.push(m); m.pause(); } }); }
       if (a === 'play') { pausedByUs.forEach(function (m) { m.play().catch(function () {}); }); pausedByUs = []; }
     };
@@ -189,14 +210,8 @@
   }
 
   function introFix() {
-    const sp = document.getElementById('splashScreen');
-    if (sp) sp.style.display = 'none';
-    const ws = document.getElementById('welcomeScreen');
-    if (ws) {
-      const spin = document.createElement('div'); spin.id = 'islamSpin';
-      document.body.appendChild(spin);
-      setTimeout(function () { if (spin.parentNode) spin.parentNode.removeChild(spin); }, 3000);
-    }
+    // Startup order is controlled by index.html:
+    // splash screen, then dedication, then dashboard.
   }
 
   function boot() { addSettings(); introFix(); }
