@@ -92,6 +92,22 @@ public class MainActivity extends Activity {
         // لو الصفحة اتأخرت، نخفي شاشة البداية بعد 6 ثواني على أي حال
         handler.postDelayed(this::hideSplash, 6000);
 
+        webView.setWebChromeClient(new android.webkit.WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView view, android.webkit.ValueCallback<android.net.Uri[]> callback,
+                                             android.webkit.WebChromeClient.FileChooserParams params) {
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                try {
+                    startActivityForResult(params.createIntent(), REQ_FILE);
+                } catch (Exception e) {
+                    fileCallback = null;
+                    return false;
+                }
+                return true;
+            }
+        });
+
         webView.loadUrl(START_URL);
 
         // أول مرة بس بعد التثبيت: نطلب إذن الموقع والإشعارات من أندرويد نفسه
@@ -116,6 +132,22 @@ public class MainActivity extends Activity {
         }
         if (!needed.isEmpty()) {
             ActivityCompat.requestPermissions(this, needed.toArray(new String[0]), REQ_LOCATION);
+        }
+    }
+
+    private android.webkit.ValueCallback<android.net.Uri[]> fileCallback;
+    static final int REQ_FILE = 2001;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_FILE && fileCallback != null) {
+            android.net.Uri[] out = null;
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                out = new android.net.Uri[]{data.getData()};
+            }
+            fileCallback.onReceiveValue(out);
+            fileCallback = null;
         }
     }
 

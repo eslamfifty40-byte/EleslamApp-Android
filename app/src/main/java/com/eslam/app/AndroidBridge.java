@@ -245,4 +245,36 @@ public class AndroidBridge implements SensorEventListener {
         return ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
                 == PackageManager.PERMISSION_GRANTED;
     }
+
+    private android.speech.tts.TextToSpeech tts;
+    private boolean ttsReady = false;
+    private String pendingSpeak = null;
+
+    private void ensureTts() {
+        if (tts != null) return;
+        tts = new android.speech.tts.TextToSpeech(activity, status -> {
+            if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                int r = tts.setLanguage(new java.util.Locale("ar"));
+                if (r == android.speech.tts.TextToSpeech.LANG_MISSING_DATA
+                        || r == android.speech.tts.TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts.setLanguage(java.util.Locale.getDefault());
+                }
+                ttsReady = true;
+                if (pendingSpeak != null) {
+                    tts.speak(pendingSpeak, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "p");
+                    pendingSpeak = null;
+                }
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void speak(String text) {
+        ensureTts();
+        if (ttsReady) tts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "q");
+        else pendingSpeak = text;
+    }
+
+    @JavascriptInterface
+    public void stopSpeak() { if (tts != null) tts.stop(); }
 }
