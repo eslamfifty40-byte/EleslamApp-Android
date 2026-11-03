@@ -5061,7 +5061,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   const az=$('tab-myazkar');
   if(az&&!$('azkarReminderTime')){
-   const row=document.createElement('div');row.className='bg-islamic-800 border border-islamic-700 rounded-xl p-4 mt-3';row.innerHTML='<label for="azkarReminderTime" class="block text-islamic-gold font-bold mb-2">موعد تذكير الأذكار اليومي</label><input id="azkarReminderTime" type="time" value="09:00" class="w-full rounded-lg bg-islamic-900 border border-islamic-700 p-3 text-white"><p class="text-sm text-slate-300 mt-2">التذكير يظهر أثناء بقاء التطبيق مفتوحًا.</p>';
+   const row=document.createElement('div');row.className='bg-islamic-800 border border-islamic-700 rounded-xl p-4 mt-3';row.innerHTML='<label for="azkarReminderTime" class="block text-islamic-gold font-bold mb-2">موعد تذكير الأذكار اليومي</label><input id="azkarReminderTime" type="time" value="09:00" class="w-full rounded-lg bg-islamic-900 border border-islamic-700 p-3 text-white"><p class="text-sm text-slate-300 mt-2">التذكير يظهر حتى لو التطبيق مقفول.</p>';
    az.appendChild(row);
    const inp=$('azkarReminderTime');inp.value=localStorage.getItem('myazkar-notify-time')||'09:00';inp.addEventListener('change',()=>localStorage.setItem('myazkar-notify-time',inp.value));
   }

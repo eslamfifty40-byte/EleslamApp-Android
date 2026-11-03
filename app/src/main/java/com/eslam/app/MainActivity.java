@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
         splash = new ImageView(this);
-        splash.setImageResource(R.drawable.welcome_dedication);
+        splash.setImageResource(R.drawable.splash_screen);
         splash.setScaleType(ImageView.ScaleType.CENTER_CROP);
         root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         root.addView(splash, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -54,6 +54,11 @@ public class MainActivity extends Activity {
         FrameLayout.LayoutParams spLp = new FrameLayout.LayoutParams(120, 120, android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.BOTTOM);
         spLp.bottomMargin = 220;
         root.addView(spinner, spLp);
+        spinner.setVisibility(View.GONE);
+        handler.postDelayed(() -> {
+            splash.setImageResource(R.drawable.welcome_dedication);
+            spinner.setVisibility(View.VISIBLE);
+        }, 2000);
         setContentView(root);
 
         WebSettings s = webView.getSettings();
@@ -167,7 +172,7 @@ public class MainActivity extends Activity {
 
     private void hideSplash() {
         if (splash == null || splash.getVisibility() != View.VISIBLE) return;
-        long wait = 3000 - (System.currentTimeMillis() - splashStart);
+        long wait = 5000 - (System.currentTimeMillis() - splashStart);
         if (wait > 0) { handler.postDelayed(this::hideSplash, wait); return; }
         if (spinner != null) spinner.setVisibility(View.GONE);
         splash.animate().alpha(0f).setDuration(300).withEndAction(() -> splash.setVisibility(View.GONE)).start();
