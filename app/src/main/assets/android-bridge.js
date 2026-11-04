@@ -232,24 +232,6 @@
     var arrow = document.getElementById('compassArrow');
     var q = window.islamQiblaBearing;
     if (!arrow || q == null || isNaN(h)) return;
-    var now = Date.now();
-    if (now - lastT < 60) return;
-    lastT = now;
-    if (smooth == null) smooth = h;
-    var d = ((h - smooth + 540) % 360) - 180;
-    smooth = (smooth + d * 0.25 + 360) % 360;
-    var rot = (q - smooth + 360) % 360;
-    arrow.style.transform = 'rotate(' + ((smooth - q - 90 + 720) % 360) + 'deg)';
-  };
-})();
-
-(function () {
-  if (!window.islamIsNative) return;
-  var sm = null;
-  window.onNativeCompass = function (h) {
-    var arrow = document.getElementById('compassArrow');
-    var q = window.islamQiblaBearing;
-    if (!arrow || q == null || isNaN(h)) return;
     if (sm == null) sm = h;
     var d = ((h - sm + 540) % 360) - 180;
     if (Math.abs(d) < 2) return;
