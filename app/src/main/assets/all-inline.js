@@ -4007,3 +4007,45 @@ window.addEventListener('popstate',e=>{const root=document.getElementById('extra
   document.addEventListener('input',e=>{if(e.target&&e.target.id==='quranSurahSearch')setTimeout(markSelected,0);});
   document.addEventListener('DOMContentLoaded',markSelected);setTimeout(markSelected,400);setTimeout(markSelected,1200);
 })();
+
+
+
+/* ESlam_NATIVE_COMPASS_SINGLE_SOURCE_V1 */
+(function () {
+    if (!window.AndroidNative ||
+        typeof AndroidNative.hasCompass !== "function" ||
+        !AndroidNative.hasCompass()) return;
+
+    // منع حساس المتصفح من منافسة حساس Android
+    try {
+        if (typeof orientationHandler === "function") {
+            orientationHandler = function () {};
+        }
+        window.removeEventListener("deviceorientation", orientationHandler, true);
+        window.removeEventListener("deviceorientationabsolute", orientationHandler, true);
+    } catch (e) {}
+
+    // استقبال اتجاه الهاتف من حساس Android فقط
+    window.onNativeCompass = function (heading) {
+        if (!Number.isFinite(heading) ||
+            typeof qiblaBearing !== "number" ||
+            !Number.isFinite(qiblaBearing)) return;
+
+        var angle = ((qiblaBearing - heading) % 360 + 360) % 360;
+        if (typeof rotateQibla === "function") rotateQibla(angle);
+    };
+
+    function startNativeCompass() {
+        try {
+            AndroidNative.startCompass();
+        } catch (e) {
+            console.error("Native compass error:", e);
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startNativeCompass, {once:true});
+    } else {
+        startNativeCompass();
+    }
+})();
