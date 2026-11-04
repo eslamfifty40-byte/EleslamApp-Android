@@ -42,6 +42,7 @@ public class AndroidBridge implements SensorEventListener {
     private final float[] orientation = new float[3];
     private boolean compassOn = false;
     private float lastHeading = -1f;
+    private float filteredHeading = Float.NaN;
 
     private float declination = 0f;
 
@@ -61,7 +62,7 @@ public class AndroidBridge implements SensorEventListener {
     @JavascriptInterface
     public void startCompass() {
         if (rotationSensor == null || compassOn) return;
-        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_GAME);
         compassOn = true;
     }
 
@@ -75,12 +76,29 @@ public class AndroidBridge implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         SensorManager.getRotationMatrixFromVector(rotMatrix, event.values);
         SensorManager.getOrientation(rotMatrix, orientation);
-        float heading = (float) Math.toDegrees(orientation[0]);
-        heading = (heading + declination + 360f) % 360f;
-        if (lastHeading >= 0 && Math.abs(heading - lastHeading) < 1f) return; // تقليل الإرسال
-        lastHeading = heading;
-        final String js = "window.onNativeCompass && window.onNativeCompass(" + heading + ")";
-        activity.runOnUiThread(() -> webView.evaluateJavascript(js, null));
+
+        float raw = (float) Math.toDegrees(orientation[0]);
+        raw = (raw + declination + 360f) % 360f;
+
+        if (Float.isNaN(filteredHeading)) {
+            filteredHeading = raw;
+        } else {
+            float delta = ((raw - filteredHeading + 540f) % 360f) - 180f;
+            filteredHeading = (filteredHeading + delta * 0.18f + 360f) % 360f;
+        }
+
+        float change = lastHeading < 0 ? 999f :
+                Math.abs(((filteredHeading - lastHeading + 540f) % 360f) - 180f);
+
+        if (lastHeading >= 0 && change < 0.7f) return;
+
+        lastHeading = filteredHeading;
+
+        final String js =
+                "window.onNativeCompass && window.onNativeCompass(" +
+                filteredHeading + ")";
+        activity.runOnUiThread(() ->
+                webView.evaluateJavascript(js, null));
     }
 
     @Override
