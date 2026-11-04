@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - azkar-build
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -31,5 +32,5 @@ jobs:
           test -n "$KEYSTORE_PASSWORD"
           test -n "$KEY_ALIAS"
           test -n "$KEY_PASSWORD"
-          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/eslam-release.jks"
+          printf "%s" "$KEYSTORE_BASE64" | tr -d "[:space:]" | base64 --decode > "$RUNNER_TEMP/eslam-release.jks"
           echo "KEYSTORE_PATH=$RUNNER_TEMP/eslam-release.jks" >> "$GITHUB_ENV"
