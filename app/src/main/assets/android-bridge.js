@@ -217,3 +217,12 @@
   function boot() { addSettings(); introFix(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
+(function () {
+  if (!window.islamIsNative) return;
+  setInterval(function () {
+    ['islamSettingsBtn', 'islamSettingsPanel'].forEach(function (id) {
+      var e = document.getElementById(id);
+      if (e) e.remove();
+    });
+  }, 300);
+})();
