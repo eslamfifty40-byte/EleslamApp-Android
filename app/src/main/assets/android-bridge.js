@@ -33,9 +33,7 @@
   };
 
   window.islamStartCompass = function () { if (N.hasCompass()) N.startCompass(); };
-  window.onNativeCompass = function (h) {
-    if (typeof window.orientationHandler === 'function') window.orientationHandler({ alpha: (360 - h) % 360, __native: true });
-  };
+  
 
   function FakeNotification(title, opts) { N.notify(String(title), (opts && opts.body) || ''); }
   FakeNotification.permission = 'granted';
