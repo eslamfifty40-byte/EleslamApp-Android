@@ -241,6 +241,6 @@
     var d = ((h - smooth + 540) % 360) - 180;
     smooth = (smooth + d * 0.25 + 360) % 360;
     var rot = (q - smooth + 360) % 360;
-    arrow.style.transform = 'rotate(' + rot + 'deg)';
+    arrow.style.transform = 'rotate(' + (rot - 90) + 'deg)';
   };
 })();
