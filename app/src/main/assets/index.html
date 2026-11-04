@@ -2268,7 +2268,7 @@ window.addEventListener('appinstalled', () => {
   if (btn) btn.textContent = '✅ تم تثبيت التطبيق';
   if (status) status.textContent = 'تقدر تفتح الإسلام من أيقونته على الشاشة الرئيسية.';
 });
-async function installIslamApp() {
+async function installIslamApp() { if(!window.islamIsNative){window.location.href='https://github.com/eslamfifty40-byte/EleslamApp-Android/releases/latest/download/Eleslam.apk';return;}
   const status = document.getElementById('installAppStatus');
   if (window.islamIsNative) {
     const ok = AndroidNative.addHomeShortcut();
