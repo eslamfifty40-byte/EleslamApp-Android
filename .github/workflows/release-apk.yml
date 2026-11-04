@@ -1,21 +1,35 @@
-      - name: Fix Android PNG resources
+name: Release APK
+
+on:
+  push:
+    branches:
+      - azkar-build
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prepare signing key
+        env:
+          KEYSTORE_BASE64: $DIL1
+          KEYSTORE_PASSWORD: $DIL2
+          KEY_ALIAS: $DIL3
+          KEY_PASSWORD: $DIL4
         run: |
-          python3 -m pip install Pillow
-          python3 - <<'PY'
-          from PIL import Image
-          from pathlib import Path
-
-          files = [
-              "app/src/main/res/drawable-nodpi/splash_screen.png",
-              "app/src/main/res/drawable-nodpi/welcome_dedication.png"
-          ]
-
-          for file in files:
-              path = Path(file)
-              img = Image.open(path)
-              img.load()
-              if img.mode not in ("RGB", "RGBA"):
-                  img = img.convert("RGBA")
-              img.save(path, format="PNG", optimize=True)
-              print("Fixed:", file)
-          PY
+          test -n "$KEYSTORE_BASE64"
+          test -n "$KEYSTORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/eslam-release.jks"
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/eslam-release.jks" >> "$GITHUB_ENV"
