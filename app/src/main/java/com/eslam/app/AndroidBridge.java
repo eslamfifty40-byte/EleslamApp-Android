@@ -62,7 +62,7 @@ public class AndroidBridge implements SensorEventListener {
     @JavascriptInterface
     public void startCompass() {
         if (rotationSensor == null || compassOn) return;
-        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_GAME);
+        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_UI);
         compassOn = true;
     }
 
@@ -76,29 +76,21 @@ public class AndroidBridge implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         SensorManager.getRotationMatrixFromVector(rotMatrix, event.values);
         SensorManager.getOrientation(rotMatrix, orientation);
-
         float raw = (float) Math.toDegrees(orientation[0]);
         raw = (raw + declination + 360f) % 360f;
-
         if (Float.isNaN(filteredHeading)) {
             filteredHeading = raw;
         } else {
             float delta = ((raw - filteredHeading + 540f) % 360f) - 180f;
-            filteredHeading = (filteredHeading + delta * 0.18f + 360f) % 360f;
+            filteredHeading = (filteredHeading + delta * 0.08f + 360f) % 360f;
         }
-
-        float change = lastHeading < 0 ? 999f :
-                Math.abs(((filteredHeading - lastHeading + 540f) % 360f) - 180f);
-
-        if (lastHeading >= 0 && change < 0.7f) return;
-
+        if (lastHeading >= 0) {
+            float change = Math.abs(((filteredHeading - lastHeading + 540f) % 360f) - 180f);
+            if (change < 1.0f) return;
+        }
         lastHeading = filteredHeading;
-
-        final String js =
-                "window.onNativeCompass && window.onNativeCompass(" +
-                filteredHeading + ")";
-        activity.runOnUiThread(() ->
-                webView.evaluateJavascript(js, null));
+        final String js = "window.onNativeCompass && window.onNativeCompass(" + filteredHeading + ")";
+        activity.runOnUiThread(() -> webView.evaluateJavascript(js, null));
     }
 
     @Override
