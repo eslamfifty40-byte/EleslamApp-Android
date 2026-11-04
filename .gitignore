@@ -6,3 +6,7 @@ EleslamApp-Android/
 *.jks
 *.keystore
 eslam-key*.txt
+
+*.jks
+*.keystore
+eslam-key*.txt
