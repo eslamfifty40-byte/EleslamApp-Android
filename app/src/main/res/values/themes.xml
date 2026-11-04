@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/welcome_dedication</item>
+        <item name="android:windowBackground">@drawable/splash_screen</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">#031912</item>
         <item name="android:navigationBarColor">#031912</item>
         <item name="android:windowSplashScreenBackground">#031912</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/welcome_dedication</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_transparent</item>
     </style>
 </resources>

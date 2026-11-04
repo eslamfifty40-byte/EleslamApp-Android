@@ -4,6 +4,18 @@
     return !!el && !el.hidden && el.getClientRects().length > 0;
   }
   window.islamHandleBack = function () {
+    var qiraat = document.getElementById('qiraatTenPanel');
+    if (qiraat && qiraat.classList.contains('qiraat-page-open')) {
+      if (typeof window.returnFromQiraatToHome === 'function') {
+        window.returnFromQiraatToHome();
+      } else {
+        if (typeof window.closeQiraatPage === 'function')
+          window.closeQiraatPage();
+        if (typeof window.showDashHome === 'function')
+          window.showDashHome();
+      }
+      return true;
+    }
     var radio = document.getElementById('quranRadioPanel');
     if (visible(radio)) {
       var close = document.getElementById('qrClose');
