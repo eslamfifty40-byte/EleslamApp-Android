@@ -1,63 +1,21 @@
-name: Release APK
-
-on:
-  push:
-    branches: [azkar-build]
-
-permissions:
-  contents: write
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Prepare signing key
-        env:
-          KEYSTORE_BASE64: ${{ secrets.ESLAM_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ESLAM_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ESLAM_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ESLAM_KEY_PASSWORD }}
+      - name: Fix Android PNG resources
         run: |
-          test -n "$KEYSTORE_BASE64"
-          test -n "$KEYSTORE_PASSWORD"
-          test -n "$KEY_ALIAS"
-          test -n "$KEY_PASSWORD"
-          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/eslam-release.jks"
-          echo "KEYSTORE_PATH=$RUNNER_TEMP/eslam-release.jks" >> "$GITHUB_ENV"
+          python3 -m pip install Pillow
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
 
-      - name: Build signed APK
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ESLAM_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ESLAM_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ESLAM_KEY_PASSWORD }}
-        run: |
-          sed -i -E "s/versionCode[[:space:]]+[0-9]+/versionCode ${GITHUB_RUN_NUMBER}/" app/build.gradle
-          chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
-          APK="app/build/outputs/apk/release/app-release-unsigned.apk"
-          test -f "$APK"
-          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
-          "$BUILD_TOOLS/apksigner" sign \
-            --ks "$KEYSTORE_PATH" \
-            --ks-key-alias "$KEY_ALIAS" \
-            --ks-pass env:KEYSTORE_PASSWORD \
-            --key-pass env:KEY_PASSWORD \
-            --out Eleslam.apk "$APK"
-          "$BUILD_TOOLS/apksigner" verify Eleslam.apk
+          files = [
+              "app/src/main/res/drawable-nodpi/splash_screen.png",
+              "app/src/main/res/drawable-nodpi/welcome_dedication.png"
+          ]
 
-      - name: Publish APK
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="v1.${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" Eleslam.apk \
-            --title "Eleslam ${GITHUB_RUN_NUMBER}" \
-            --latest
+          for file in files:
+              path = Path(file)
+              img = Image.open(path)
+              img.load()
+              if img.mode not in ("RGB", "RGBA"):
+                  img = img.convert("RGBA")
+              img.save(path, format="PNG", optimize=True)
+              print("Fixed:", file)
+          PY
