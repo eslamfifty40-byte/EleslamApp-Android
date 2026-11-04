@@ -76,7 +76,7 @@ public class AndroidBridge implements SensorEventListener {
         SensorManager.getRotationMatrixFromVector(rotMatrix, event.values);
         SensorManager.getOrientation(rotMatrix, orientation);
         float heading = (float) Math.toDegrees(orientation[0]);
-        heading = (360f - heading + declination + 720f) % 360f;
+        heading = (heading + declination + 360f) % 360f;
         if (lastHeading >= 0 && Math.abs(heading - lastHeading) < 1f) return; // تقليل الإرسال
         lastHeading = heading;
         final String js = "window.onNativeCompass && window.onNativeCompass(" + heading + ")";
