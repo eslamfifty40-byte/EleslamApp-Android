@@ -76,19 +76,11 @@ public class AndroidBridge implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         SensorManager.getRotationMatrixFromVector(rotMatrix, event.values);
         SensorManager.getOrientation(rotMatrix, orientation);
-        float raw = (float) Math.toDegrees(orientation[0]);
-        raw = (raw + declination + 360f) % 360f;
-        if (Float.isNaN(filteredHeading)) {
-            filteredHeading = raw;
-        } else {
-            float delta = ((raw - filteredHeading + 540f) % 360f) - 180f;
-            filteredHeading = (filteredHeading + delta * 0.08f + 360f) % 360f;
-        }
-        if (lastHeading >= 0) {
-            float change = Math.abs(((filteredHeading - lastHeading + 540f) % 360f) - 180f);
-            if (change < 1.0f) return;
-        }
-        lastHeading = filteredHeading;
+        float heading = (float) Math.toDegrees(orientation[0]);
+        heading = (heading + declination + 360f) % 360f;
+        if (Float.isNaN(filteredHeading)) filteredHeading = heading;
+        float delta = ((heading - filteredHeading + 540f) % 360f) - 180f;
+        filteredHeading = (filteredHeading + delta * 0.2f + 360f) % 360f;
         final String js = "window.onNativeCompass && window.onNativeCompass(" + filteredHeading + ")";
         activity.runOnUiThread(() -> webView.evaluateJavascript(js, null));
     }
