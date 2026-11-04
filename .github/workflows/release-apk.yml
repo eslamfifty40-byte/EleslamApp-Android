@@ -23,10 +23,10 @@ jobs:
 
       - name: Prepare signing key
         env:
-          KEYSTORE_BASE64: $DIL1
-          KEYSTORE_PASSWORD: $DIL2
-          KEY_ALIAS: $DIL3
-          KEY_PASSWORD: $DIL4
+          KEYSTORE_BASE64: ${{ secrets.ESLAM_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ESLAM_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ESLAM_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ESLAM_KEY_PASSWORD }}
         run: |
           test -n "$KEYSTORE_BASE64"
           test -n "$KEYSTORE_PASSWORD"
