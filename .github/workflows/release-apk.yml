@@ -1,10 +1,9 @@
 name: Release APK
 
 on:
-  push:
-    branches:
-      - azkar-build
   workflow_dispatch:
+  push:
+    branches: [azkar-build]
 
 permissions:
   contents: write
@@ -12,7 +11,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -32,5 +30,20 @@ jobs:
           test -n "$KEYSTORE_PASSWORD"
           test -n "$KEY_ALIAS"
           test -n "$KEY_PASSWORD"
-          printf "%s" "$KEYSTORE_BASE64" | tr -d "[:space:]" | base64 --decode > "$RUNNER_TEMP/eslam-release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/eslam-release.jks"
           echo "KEYSTORE_PATH=$RUNNER_TEMP/eslam-release.jks" >> "$GITHUB_ENV"
+          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Build release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk Eleslam.apk
+          gh release create "v1.${{ github.run_number }}" Eleslam.apk --title "Eleslam ${{ github.run_number }}" --latest
