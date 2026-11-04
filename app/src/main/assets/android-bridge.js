@@ -244,3 +244,19 @@
     arrow.style.transform = 'rotate(' + (rot - 90) + 'deg)';
   };
 })();
+
+(function () {
+  if (!window.islamIsNative) return;
+  var sm = null;
+  window.onNativeCompass = function (h) {
+    var arrow = document.getElementById('compassArrow');
+    var q = window.islamQiblaBearing;
+    if (!arrow || q == null || isNaN(h)) return;
+    if (sm == null) sm = h;
+    var d = ((h - sm + 540) % 360) - 180;
+    if (Math.abs(d) < 2) return;
+    sm = (sm + d * 0.1 + 360) % 360;
+    var rot = (q + sm + 360) % 360;
+    arrow.style.transform = 'rotate(' + (rot - 90) + 'deg)';
+  };
+})();
