@@ -2,3 +2,7 @@
 build/
 EleslamApp-Android/
 *.log
+
+*.jks
+*.keystore
+eslam-key*.txt
