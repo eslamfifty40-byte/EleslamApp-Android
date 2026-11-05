@@ -33,7 +33,9 @@
   };
 
   window.islamStartCompass = function () { if (N.hasCompass()) N.startCompass(); };
-  
+  window.onNativeCompass = function (h) {
+    if (typeof window.orientationHandler === 'function') window.orientationHandler({ alpha: (360 - h) % 360, __native: true });
+  };
 
   function FakeNotification(title, opts) { N.notify(String(title), (opts && opts.body) || ''); }
   FakeNotification.permission = 'granted';
@@ -232,11 +234,13 @@
     var arrow = document.getElementById('compassArrow');
     var q = window.islamQiblaBearing;
     if (!arrow || q == null || isNaN(h)) return;
-    if (sm == null) sm = h;
-    var d = ((h - sm + 540) % 360) - 180;
-    if (Math.abs(d) < 2) return;
-    sm = (sm + d * 0.1 + 360) % 360;
-    var rot = (q + sm + 360) % 360;
-    arrow.style.transform = 'rotate(' + ((smooth - q - 90 + 720) % 360) + 'deg)';
+    var now = Date.now();
+    if (now - lastT < 60) return;
+    lastT = now;
+    if (smooth == null) smooth = h;
+    var d = ((h - smooth + 540) % 360) - 180;
+    smooth = (smooth + d * 0.25 + 360) % 360;
+    var rot = (q - smooth + 360) % 360;
+    arrow.style.transform = 'rotate(' + (rot - 90) + 'deg)';
   };
 })();
